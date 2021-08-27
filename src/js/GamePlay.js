@@ -26,7 +26,7 @@ export default class GamePlay {
    *
    * @param theme
    */
-  drawUi(theme) {
+  drawUi(theme) { // вызывается в классе GameController.init
     this.checkBinding();
 
     this.container.innerHTML = `
@@ -51,7 +51,7 @@ export default class GamePlay {
     this.boardEl = this.container.querySelector('[data-id=board]');
 
     this.boardEl.classList.add(theme);
-    for (let i = 0; i < this.boardSize ** 2; i += 1) {
+    for (let i = 1; i <= this.boardSize ** 2; i += 1) { // изменил i=0 на i=1 и заменил знак < на <=
       const cellEl = document.createElement('div');
       cellEl.classList.add('cell', 'map-tile', `map-tile-${calcTileType(i, this.boardSize)}`);
       cellEl.addEventListener('mouseenter', event => this.onCellEnter(event));

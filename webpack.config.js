@@ -3,6 +3,7 @@ const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
+  // devtool: false,
   mode: 'production',
   entry: './src/index.js',
   output: {
@@ -51,5 +52,6 @@ module.exports = {
       filename: '[name].css',
       chunkFilename: '[id].css',
     }),
+    // new webpack.SourceMapDevToolPlugin({}),
   ],
 };
