@@ -4,8 +4,8 @@ export default class GamePlay {
   constructor() {
     this.boardSize = 8;
     this.container = null;
-    this.boardEl = null;
-    this.cells = [];
+    this.boardEl = null; // Элемент игрового поля
+    this.cells = []; // Массив клеток
     this.cellClickListeners = [];
     this.cellEnterListeners = [];
     this.cellLeaveListeners = [];
@@ -68,7 +68,7 @@ export default class GamePlay {
    *
    * @param positions array of PositionedCharacter objects
    */
-  redrawPositions(positions) {
+  redrawPositions(positions) { // отрисовывает персонажей на поле. ПРинимает массив объектов команды
     for (const cell of this.cells) {
       cell.innerHTML = '';
     }
