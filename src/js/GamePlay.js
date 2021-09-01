@@ -12,6 +12,7 @@ export default class GamePlay {
     this.newGameListeners = [];
     this.saveGameListeners = [];
     this.loadGameListeners = [];
+    console.log('массив клеток', this.cells);
   }
 
   bindToDOM(container) {
@@ -19,6 +20,8 @@ export default class GamePlay {
       throw new Error('container is not HTMLElement');
     }
     this.container = container;
+    console.log('контейнер', this.container);
+
   }
 
   /**
@@ -57,7 +60,7 @@ export default class GamePlay {
       cellEl.addEventListener('mouseenter', event => this.onCellEnter(event));
       cellEl.addEventListener('mouseleave', event => this.onCellLeave(event));
       cellEl.addEventListener('click', event => this.onCellClick(event));
-      this.boardEl.appendChild(cellEl);
+      this.boardEl.appendChild(cellEl); // добавляет узел в конец списка дочерних элементов
     }
 
     this.cells = Array.from(this.boardEl.children);
@@ -74,7 +77,7 @@ export default class GamePlay {
     }
 
     for (const position of positions) {
-      const cellEl = this.boardEl.children[position.position];
+      const cellEl = this.boardEl.children[position.position];// не найден
       const charEl = document.createElement('div');
       charEl.classList.add('character', position.character.type);
 
