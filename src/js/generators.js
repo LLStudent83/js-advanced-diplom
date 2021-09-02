@@ -28,7 +28,7 @@ function* generatorUniqueNumbers(characterCount, setObj) {
   }
 }
 
-export function generateTeam(allowedTypes, maxLevel, characterCount) { // количество персонажей
+export function generateTeam(allowedTypes, maxLevel, characterCount, arrPositions) { // количество персонажей
   const arrObjCharTeam = [];
   const setObj = new Set();
   for (let i = 1; i <= characterCount;) {
@@ -38,7 +38,7 @@ export function generateTeam(allowedTypes, maxLevel, characterCount) { // кол
 
     const genNum = generatorUniqueNumbers(characterCount, setObj);
 
-    const positionPlayer = arrPositionsPlayer[genNum.next().value];
+    const positionPlayer = arrPositions[genNum.next().value];
     const objPositionedCharacter = new PositionedCharacter(char.next().value, positionPlayer);
     arrObjCharTeam.push(objPositionedCharacter);
     i += 1;
