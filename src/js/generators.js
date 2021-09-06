@@ -11,7 +11,7 @@ import PositionedCharacter from './PositionedCharacter';
 export function* characterGenerator(allowedTypes, maxLevel) { // разрешонные типы
   let levelChar = Math.floor(Math.random() * (maxLevel + 1));
   levelChar = levelChar === 0 ? levelChar += 1 : levelChar;
-  const numberChar = Math.floor(Math.random() * (allowedTypes.length + 1));
+  const numberChar = Math.floor(Math.random() * (allowedTypes.length));
 
   yield new allowedTypes[numberChar](levelChar); // получаем одного героя из 6
 }

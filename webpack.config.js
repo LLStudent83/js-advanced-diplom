@@ -3,8 +3,8 @@ const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
-  // devtool: false,
-  mode: 'production',
+  mode: process.env.NODE_ENV === 'development' ? 'development' : 'production',
+  devtool: process.env.NODE_ENV === 'development' ? 'inline-source-map' : 'source-map',
   entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -52,6 +52,5 @@ module.exports = {
       filename: '[name].css',
       chunkFilename: '[id].css',
     }),
-    // new webpack.SourceMapDevToolPlugin({}),
   ],
 };
