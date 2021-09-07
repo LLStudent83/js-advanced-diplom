@@ -12,62 +12,68 @@ export default class GameController {
   }
 
   init() {
-    // GameState.from(object);
-    // const state = this.stateService.load();
-    // определяю тип темы
-    const theme = undefined;
-    // if (state.level === 1 || state.level === null) {
-    //   theme = themes.prairie;
-    // } if (state.level === 2) {
-    //   theme = themes.desert;
-    // } if (state.level === 3) {
-    //   theme = themes.arctic;
-    // } if (state.level === 3) {
-    //   theme = themes.mountain;
-    // }
+    if (!this.stateService.load()) {
+      this.gamePlay.drawUi(themes.prairie);
+      const arrObjCharRendomPlayer = generateTeam(new Team().arrObjChar, 1, 2, this.arrPositionsPlayer);
+      const arrObjCharRendomPC = generateTeam(new Team().arrObjChar, 1, 2, this.arrPositionsPC);
+      this.arrSummCarPosition = [...arrObjCharRendomPlayer, ...arrObjCharRendomPC];
+      this.gamePlay.redrawPositions(this.arrSummCarPosition);
+      this.stateService.save(
+        {
+          level: 1,
+          charPl: arrObjCharRendomPlayer,
+          charPC: arrObjCharRendomPC,
+          step: 'user',
+          state: null,
+          scores: 0,
+          maxLevel: 1,
+        },
+      );
+    } else {
+      const state = this.stateService.load();
+      let theme;
+      if (state.level === 1) {
+        theme = themes.prairie;
+      } if (state.level === 2) {
+        theme = themes.desert;
+      } if (state.level === 3) {
+        theme = themes.arctic;
+      } if (state.level === 3) {
+        theme = themes.mountain;
+      }
 
-    this.gamePlay.drawUi(themes.prairie); // theme
+      this.gamePlay.drawUi(theme);
 
-    // Собираю команду
+      console.log([...state.charPC, ...state.charPl]);
+      this.arrSummCarPosition = [...state.charPC, ...state.charPl];
+      this.gamePlay.redrawPositions(this.arrSummCarPosition);
+    }
 
-    const arrObjCharRendomPlayer = generateTeam(new Team().arrObjChar, 1, 2, this.arrPositionsPlayer);
-    const arrObjCharRendomPC = generateTeam(new Team().arrObjChar, 1, 2, this.arrPositionsPC);
-
-    this.gamePlay.redrawPositions([...arrObjCharRendomPlayer, ...arrObjCharRendomPC]);
-
-    this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this)); // добавляет обработчики события
+    this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
     this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
-    this.gamePlay.addCellClickListener(this.onCellClick);
+    this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
 
     this.gamePlay.addNewGameListener(() => {
-      // игрок ходит первым т.е. step: 'user'
-      this.init();
     });
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
   }
 
-  // level: 1,
-  // char: new Team(2, 1, [new Bowman(), new Swordsman()]).ranking(),
-  // step: 'user',
-  // state: null,
-  // scores: 0,
-  // maxLevel: 1,
-
   onCellClick(index) {
-    console.log('Вызвался onCellClick', this);
+    this.gamePlay.selectCell(index);
     // TODO: react to click
   }
 
-  onCellEnter(index) { // обработчик события вход на ячейку
-    if (true) {
-      const message = `🎖${'уровень'} ⚔${'атака'} 🛡${'защита'} ❤${'жизнь'}`;
-      this.gamePlay.showCellTooltip(message, index); // отображает информацию
+  onCellEnter(index) {
+    const activSell = this.arrSummCarPosition.find((element) => element.position === index);
+    if (activSell) {
+      const message = `🎖${activSell.character.level} ⚔${activSell.character.attack} 🛡${activSell.character.defence} ❤${activSell.character.health}`;
+      this.gamePlay.showCellTooltip(message, index);
     }// TODO: react to mouse enter
   }
 
   onCellLeave(index) {
-    this.gamePlay.hideCellTooltip(index); // скрывает информацю
+    this.gamePlay.hideCellTooltip(index);
     // TODO: react to mouse leave
   }
 }

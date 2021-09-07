@@ -1,4 +1,3 @@
-import GameController from './GameController';
 import { calcHealthLevel, calcTileType } from './utils';
 
 export default class GamePlay {
@@ -75,7 +74,7 @@ export default class GamePlay {
     }
 
     for (const position of positions) {
-      const cellEl = this.boardEl.children[position.position];// не найден
+      const cellEl = this.boardEl.children[position.position];
       const charEl = document.createElement('div');
       charEl.classList.add('character', position.character.type);
 
@@ -166,7 +165,6 @@ export default class GamePlay {
   onNewGameClick(event) {
     event.preventDefault();
     this.newGameListeners.forEach((o) => o.call(null));
-    // this.newGameListeners.forEach((o) => o.call(GameController));
   }
 
   onSaveGameClick(event) {
