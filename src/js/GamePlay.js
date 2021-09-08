@@ -185,15 +185,15 @@ export default class GamePlay {
     alert(message);
   }
 
-  selectCell(index, color = 'yellow') {
+  selectCell(index, color = 'yellow') { // выделение ячейки зеленым сплошным кругом
     this.deselectCell(index);
     this.cells[index].classList.add('selected', `selected-${color}`);
   }
 
-  deselectCell(index) {
+  deselectCell(index) { // убрать выделение с клетки
     const cell = this.cells[index];
     cell.classList.remove(...Array.from(cell.classList)
-      .filter((o) => o.startsWith('selected')));
+      .filter((o) => o.startsWith('selected'))); // startsWith начинается ли строка с указанного символа
   }
 
   showCellTooltip(message, index) {
@@ -204,7 +204,7 @@ export default class GamePlay {
     this.cells[index].title = '';
   }
 
-  showDamage(index, damage) {
+  showDamage(index, damage) { // показать повреждение
     return new Promise((resolve) => {
       const cell = this.cells[index];
       const damageEl = document.createElement('span');
