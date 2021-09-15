@@ -123,7 +123,7 @@ export default class GameController {
       }
     }
     // блок выделения ячейки перед перемещением персонажа
-    const numActivSell = Array.from(this.gamePlay.cells) // номер активной ячейки персонажа
+    const numActivSell = Array.from(this.gamePlay.cells)
       .findIndex((element) => element.classList.contains('selected') && element.firstChild);
       // номер ячейки активного персонажа найденное по названию класса
     if (numActivSell !== -1) { // если есть активный игрок .....
@@ -135,38 +135,48 @@ export default class GameController {
           dist = this.playerTurnParameters[key];
         }
       }
-      const indexSellWithoutChar = Array.from(this.gamePlay.cells).findIndex((element) => element.classList
-        .contains('selected') && !element.firstChild);
-      if (indexSellWithoutChar !== -1) {
-        this.gamePlay.deselectCell(indexSellWithoutChar);
-      }
+
+      // const indexSellWithoutChar = Array.from(this.gamePlay.cells).findIndex((element) => element.classList
+      //   .contains('selected') && !element.firstChild);
+      //   // номер выделенной ячейки пустой без персонажей
+
+      // if (indexSellWithoutChar !== -1) { // если есть выделенная ячейка без персонажа то ...
+      //   this.gamePlay.deselectCell(indexSellWithoutChar);
+      // }
       if (calcСruisingRange(numActivSell, index, dist) !== -1
-       && !(this.gamePlay.cells[index].firstChild)) {
-        // эта формула возвращает индекс клетки хода или -1
+       && !this.gamePlay.cells[index].firstChild) { // если номер ячейки находится в диапазоне разрешонных для хода и это не персонаж то ...
         this.gamePlay.selectCell(index, 'green');
         this.gamePlay.setCursor(cursors.pointer);
       }
+      // блок выделения ячейки с противником
+      if ((calcСruisingRange(numActivSell, index, dist) !== -1)
+      && GameState.charPC.find((char) => char.position === index)) { // если номер ячейки находится в диапазоне разрешонных для атаки и это персонаж ПК то .
+        console.log('счас ударю');
+        // const activCharPCPosition = GameState.charPC.find((charPC) => this.gamePlay.cells[charPC.position].firstChild).position;
+        // номер ячейки активного персонажа ПК
+        // if (activCharPCPosition !== -1) {
+        //   this.gamePlay.deselectCell(activCharPCPosition);
+        // }
+        this.gamePlay.selectCell(index, 'red');
+      }
     }
-
-    // и номер клетки равен ..... условию выделить его зеленым пунктиром
-    // this.playerTurnParameters;
-
-    // if (игрок выделен зеленым кругом и курсор в поле зоны перемещения) {
-    //  выделить клетку штрихпунктирным кругои и курсор палец green
-    //  }
   }
 
   onCellLeave(index) {
     this.gamePlay.hideCellTooltip(index);
     this.gamePlay.setCursor(cursors.auto);
+    const indexSellWithoutChar = Array.from(this.gamePlay.cells).findIndex((element) => element.classList
+      .contains('selected') && !element.firstChild);
+    // номер выделенной ячейки пустой без персонажей
+
+    if (indexSellWithoutChar !== -1) { // если есть выделенная ячейка без персонажа то ...
+      this.gamePlay.deselectCell(indexSellWithoutChar);
+    }
+    const activCharPC = GameState.charPC.find((charPC) => this.gamePlay.cells[charPC.position].classList.contains('selected'));
+    // активный персонаж ПК
+    if (activCharPC) {
+      this.gamePlay.deselectCell(activCharPC.position);
     // TODO: react to mouse leave
+    }
   }
 }
-// Ход
-// Мечники/Скелеты - 4 клетки в любом направлении
-// Лучники/Вампиры - 2 клетки в любом направлении
-// Маги/Демоны - 1 клетка в любом направлении
-// Атака
-// Мечники/Скелеты - могут атаковать только соседнюю клетку
-// Лучники/Вампиры - на ближайшие 2 клетки
-// Маги/Демоны - на ближайшие 4 клетки
