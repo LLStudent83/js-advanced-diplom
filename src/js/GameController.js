@@ -4,6 +4,7 @@ import Team from './Team';
 import GameState from './GameState';
 import GamePlay from './GamePlay';
 import cursors from './cursors';
+import { calcСruisingRange } from './utils';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -34,8 +35,8 @@ export default class GameController {
       this.gamePlay.drawUi(themes.prairie);
       const arrObjCharRendomPlayer = generateTeam(new Team().arrObjChar, 1, 2, this.arrPositionsPlayer);
       const arrObjCharRendomPC = generateTeam(new Team().arrObjChar, 1, 2, this.arrPositionsPC);
-      this.arrSummCarPosition = [...arrObjCharRendomPlayer, ...arrObjCharRendomPC];
-      this.gamePlay.redrawPositions(this.arrSummCarPosition);
+      this.arrSummCharPosition = [...arrObjCharRendomPlayer, ...arrObjCharRendomPC];
+      this.gamePlay.redrawPositions(this.arrSummCharPosition);
       GameState.from(
         {
           level: 1,
@@ -62,8 +63,9 @@ export default class GameController {
 
       this.gamePlay.drawUi(theme);
 
-      this.arrSummCarPosition = [...GameState.charPC, ...GameState.charPl];
-      this.gamePlay.redrawPositions(this.arrSummCarPosition);
+      this.arrSummCharPosition = [...GameState.charPC, ...GameState.charPl];
+      // массив персонажей находящихся на поле
+      this.gamePlay.redrawPositions(this.arrSummCharPosition);
     }
 
     this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
@@ -80,7 +82,10 @@ export default class GameController {
 
   onCellClick(index) {
     const activCharPl = GameState.charPl.find((element) => element.position === index);
+
+    // активный персонаж игрока
     const activCharPC = GameState.charPC.find((element) => element.position === index);
+    // активный персонаж ПК
     if (!(activCharPl || activCharPC)) {
       return;
     }
@@ -90,7 +95,7 @@ export default class GameController {
     }
     const noomCellActivChar = Array.from(this.gamePlay.cells)
       .findIndex((element) => element.classList.contains('selected'));
-
+    // номер клетки активного персонажа
     if (noomCellActivChar === -1) {
       this.gamePlay.selectCell(activCharPl.position);
       return;
@@ -103,20 +108,51 @@ export default class GameController {
   }
 
   onCellEnter(index) {
-    const activSell = this.arrSummCarPosition.find((element) => element.position === index);
-    if (activSell) {
-      const message = `🎖${activSell.character.level} ⚔${activSell.character.attack} 
-      🛡${activSell.character.defence} ❤${activSell.character.health}`;
+    // блок отобоажения тулбара
+    const activSellChar = this.arrSummCharPosition.find((element) => element.position === index);
+    // активный игрок
+    if (activSellChar) {
+      const message = `🎖${activSellChar.character.level} ⚔${activSellChar.character.attack} 
+      🛡${activSellChar.character.defence} ❤${activSellChar.character.health}`;
       this.gamePlay.showCellTooltip(message, index);
     }
-    // const activCharPlIndex = GameState.charPl.findIndex((element) => element.position === index);
+    // блок установки курсора
     for (const char of GameState.charPl) {
       if (char.position === index) {
         this.gamePlay.setCursor(cursors.pointer);
       }
     }
+    // блок выделения ячейки перед перемещением персонажа
+    const numActivSell = Array.from(this.gamePlay.cells) // номер активной ячейки персонажа
+      .findIndex((element) => element.classList.contains('selected') && element.firstChild);
+      // номер ячейки активного персонажа найденное по названию класса
+    if (numActivSell !== -1) { // если есть активный игрок .....
+      let dist;
+      const nameActivChar = GameState.charPl.find((char) => char.position === numActivSell).character.type;
+      // eslint-disable-next-line guard-for-in
+      for (const key in this.playerTurnParameters) {
+        if (key === nameActivChar) { // определяем дальность хода фигур
+          dist = this.playerTurnParameters[key];
+        }
+      }
+      const indexSellWithoutChar = Array.from(this.gamePlay.cells).findIndex((element) => element.classList
+        .contains('selected') && !element.firstChild);
+      if (indexSellWithoutChar !== -1) {
+        this.gamePlay.deselectCell(indexSellWithoutChar);
+      }
+      if (calcСruisingRange(numActivSell, index, dist) !== -1
+       && !(this.gamePlay.cells[index].firstChild)) {
+        // эта формула возвращает индекс клетки хода или -1
+        this.gamePlay.selectCell(index, 'green');
+        this.gamePlay.setCursor(cursors.pointer);
+      }
+    }
+
+    // и номер клетки равен ..... условию выделить его зеленым пунктиром
+    // this.playerTurnParameters;
+
     // if (игрок выделен зеленым кругом и курсор в поле зоны перемещения) {
-    //  выделить клетку штрихпунктирным кругои и курсор палец
+    //  выделить клетку штрихпунктирным кругои и курсор палец green
     //  }
   }
 

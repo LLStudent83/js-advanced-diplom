@@ -4,9 +4,9 @@ export default class GameState {
     this.step = object.step;
     this.charPl = object.charPl;
     this.charPC = object.charPC;
-    this.state = object.state;
+    this.state = object.state; // при состоянии activ считается что игра в процессе. если нет то нужно начать заново
     this.scores = object.scores;
-    this.maxLevel = object.maxLevel;
+    this.maxLevel = object.maxLevel; // максимальный уровень игрока при создании команды
     return null;
   }
 }
