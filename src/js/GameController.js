@@ -12,22 +12,6 @@ export default class GameController {
     this.stateService = stateService;
     this.arrPositionsPlayer = [0, 1, 8, 9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49];
     this.arrPositionsPC = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 62, 63];
-    this.playerTurnParameters = {
-      swordsman: 4,
-      bowman: 2,
-      magician: 1,
-      daemon: 1,
-      undead: 4,
-      vampire: 2,
-    };
-    this.playerAttacParameters = {
-      swordsman: 1,
-      bowman: 2,
-      magician: 4,
-      daemon: 4,
-      undead: 1,
-      vampire: 2,
-    };
   }
 
   init() {
@@ -127,37 +111,22 @@ export default class GameController {
       .findIndex((element) => element.classList.contains('selected') && element.firstChild);
       // номер ячейки активного персонажа найденное по названию класса
     if (numActivSell !== -1) { // если есть активный игрок .....
-      let dist;
+      // let dist;
       const nameActivChar = GameState.charPl.find((char) => char.position === numActivSell).character.type;
-      // eslint-disable-next-line guard-for-in
-      for (const key in this.playerTurnParameters) {
-        if (key === nameActivChar) { // определяем дальность хода фигур
-          dist = this.playerTurnParameters[key];
-        }
-      }
 
-      // const indexSellWithoutChar = Array.from(this.gamePlay.cells).findIndex((element) => element.classList
-      //   .contains('selected') && !element.firstChild);
-      //   // номер выделенной ячейки пустой без персонажей
-
-      // if (indexSellWithoutChar !== -1) { // если есть выделенная ячейка без персонажа то ...
-      //   this.gamePlay.deselectCell(indexSellWithoutChar);
-      // }
-      if (calcСruisingRange(numActivSell, index, dist) !== -1
+      if (calcСruisingRange(numActivSell, index, nameActivChar, 'move') !== -1
        && !this.gamePlay.cells[index].firstChild) { // если номер ячейки находится в диапазоне разрешонных для хода и это не персонаж то ...
         this.gamePlay.selectCell(index, 'green');
         this.gamePlay.setCursor(cursors.pointer);
       }
       // блок выделения ячейки с противником
-      if ((calcСruisingRange(numActivSell, index, dist) !== -1)
-      && GameState.charPC.find((char) => char.position === index)) { // если номер ячейки находится в диапазоне разрешонных для атаки и это персонаж ПК то .
+      if ((calcСruisingRange(numActivSell, index, nameActivChar, 'attack') !== -1)
+      && GameState.charPC.find((char) => char.position === index)) {
+        // если номер ячейки находится в диапазоне разрешонных для атаки и это персонаж ПК то .
         console.log('счас ударю');
-        // const activCharPCPosition = GameState.charPC.find((charPC) => this.gamePlay.cells[charPC.position].firstChild).position;
-        // номер ячейки активного персонажа ПК
-        // if (activCharPCPosition !== -1) {
-        //   this.gamePlay.deselectCell(activCharPCPosition);
-        // }
         this.gamePlay.selectCell(index, 'red');
+        this.gamePlay.setCursor(cursors.crosshair);
+
       }
     }
   }
