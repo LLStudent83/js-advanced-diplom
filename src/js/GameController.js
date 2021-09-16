@@ -100,12 +100,7 @@ export default class GameController {
       🛡${activSellChar.character.defence} ❤${activSellChar.character.health}`;
       this.gamePlay.showCellTooltip(message, index);
     }
-    // блок установки курсора
-    for (const char of GameState.charPl) {
-      if (char.position === index) {
-        this.gamePlay.setCursor(cursors.pointer);
-      }
-    }
+
     // блок выделения ячейки перед перемещением персонажа
     const numActivSell = Array.from(this.gamePlay.cells)
       .findIndex((element) => element.classList.contains('selected') && element.firstChild);
@@ -118,15 +113,21 @@ export default class GameController {
        && !this.gamePlay.cells[index].firstChild) { // если номер ячейки находится в диапазоне разрешонных для хода и это не персонаж то ...
         this.gamePlay.selectCell(index, 'green');
         this.gamePlay.setCursor(cursors.pointer);
+      } else {
+        this.gamePlay.setCursor(cursors.notallowed);
       }
       // блок выделения ячейки с противником
       if ((calcСruisingRange(numActivSell, index, nameActivChar, 'attack') !== -1)
       && GameState.charPC.find((char) => char.position === index)) {
         // если номер ячейки находится в диапазоне разрешонных для атаки и это персонаж ПК то .
-        console.log('счас ударю');
         this.gamePlay.selectCell(index, 'red');
         this.gamePlay.setCursor(cursors.crosshair);
-
+      }
+    }
+    // блок установки курсора
+    for (const char of GameState.charPl) {
+      if (char.position === index) {
+        this.gamePlay.setCursor(cursors.pointer);
       }
     }
   }
