@@ -61,7 +61,7 @@ export function calcAreaAction(numCellActiv, numCellNext, nameActivChar, action)
   let dist;
   // eslint-disable-next-line guard-for-in
   for (const key in paramChar) {
-    if (key === nameActivChar) { // определяем дальность хода фигур
+    if (key === nameActivChar) { // определяем дальность действия фигуры
       dist = paramChar[key];
     }
   }

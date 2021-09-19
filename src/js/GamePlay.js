@@ -212,7 +212,7 @@ export default class GamePlay {
       damageEl.classList.add('damage');
       cell.appendChild(damageEl);
 
-      damageEl.addEventListener('animationend', () => {
+      damageEl.addEventListener('animationend', () => { // анимация достигает конца своего активного периода
         cell.removeChild(damageEl);
         resolve();
       });

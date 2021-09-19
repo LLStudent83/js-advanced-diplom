@@ -65,16 +65,18 @@ export default class GameController {
   }
 
   onCellClick(index) {
-    const noomCellActivChar = Array.from(this.gamePlay.cells)
-      .findIndex((element) => element.classList.contains('selected') && element.firstChild);
-    // номер клетки активного персонажа
+    const noomCellActivCharPl = Array.from(this.gamePlay.cells)
+      .findIndex((element) => element.classList.contains('selected-yellow') && element.firstChild);
+    // выше номер клетки активного персонажа игрока
+    const CharPlqqqqqqq = GameState.charPl.find((element) => element.position === noomCellActivCharPl);
     const CharPl = GameState.charPl.find((element) => element.position === index);
-    // персонаж игрока если есть
+    // выше персонаж игрока если есть в клетке куда кликнул
     const CharPC = GameState.charPC.find((element) => element.position === index);
-    // персонаж ПК если есть
+    // выше персонаж ПК если есть в клетке куда кликнул
+    // ниже логика перемещения
     if (!(CharPl || CharPC)) { // если попал в клетку где нет персонажей
       if (this.gamePlay.cells[index].classList.contains('selected-green')) {
-        // формируем массив позиционированны персонажей игрока с новой позицией
+        //  ниже формируем массив позиционированны персонажей игрока с новой позицией
         const newArrCharePl = GameState.charPl.map((char) => {
           if (this.gamePlay.cells[char.position].classList.contains('selected')) {
             char.position = index;
@@ -82,29 +84,56 @@ export default class GameController {
           } return char;
         });
         GameState.charPl = newArrCharePl;
+        GameState.step = 'PC';
         this.arrSummCharPosition = [...GameState.charPC, ...GameState.charPl];
-        // массив персонажей находящихся на поле
+        // выше массив персонажей находящихся на поле
         this.gamePlay.redrawPositions(this.arrSummCharPosition);
 
-        this.gamePlay.deselectCell(noomCellActivChar);
+        this.gamePlay.deselectCell(noomCellActivCharPl);
         this.gamePlay.selectCell(index);
-        // this.gamePlay.deselectCell(noomCellActivChar);
-        // убрать выделение склошной круг, убрать штрих-круг, установить новый круг
       }
-      // сюда прописат условие клика на клетке в диапазоне дальности хода
       return;
     }
-    if (CharPC) {
+    if (CharPC && !this.gamePlay.cells[index].classList.contains('selected-red')
+    && noomCellActivCharPl === -1) {
       GamePlay.showError('Выберите своего персонажа');
       return;
     }
+    if (CharPC && !this.gamePlay.cells[index].classList.contains('selected-red')
+    && noomCellActivCharPl !== -1) {
+      GamePlay.showError('Ваш персонаж не дотянулся до противника. Подберитесь по ближе :-)');
+      return;
+    }
+    // ниже логика проведения атаки
+    if (CharPC && this.gamePlay.cells[index].classList.contains('selected-red')) {
+      const activCharPl = GameState.charPl.find((char) => char.position === noomCellActivCharPl);
+      const damageSize = Math.max(activCharPl.character.attack - CharPC.character.defence, activCharPl.character.attack * 0.1);
+      console.log(damageSize);
+      const promise = this.gamePlay.showDamage(index, damageSize);
+      promise.then(() => {
+        //  ниже формируем массив позиционированны персонажей игрока с новым уровнем здоровья
+        const newArrCharePC = GameState.charPC.map((char) => {
+          if (this.gamePlay.cells[char.position].classList.contains('selected-red')) {
+            char.character.health -= damageSize;
+            return char;
+          } return char;
+        });
+        GameState.charPC = newArrCharePC;
+        GameState.step = 'PC';
+        this.arrSummCharPosition = [...GameState.charPC, ...GameState.charPl];
+        // выше массив персонажей находящихся на поле
+        this.gamePlay.redrawPositions(this.arrSummCharPosition);
+      });
+
+      return;
+    }
     // если кликнул по клетке и там есть персонаж игрока то .....
-    if (noomCellActivChar === -1) { // если активного персонажа нет то ....
+    if (noomCellActivCharPl === -1) { // если активного персонажа нет то ....
       this.gamePlay.selectCell(CharPl.position);
       return;
     }
-    if (!(noomCellActivChar === CharPl.position)) { // если клинтул по не активному персонажу игрока ...
-      this.gamePlay.deselectCell(noomCellActivChar);
+    if (!(noomCellActivCharPl === CharPl.position)) { // если клинтул по не активному персонажу игрока ...
+      this.gamePlay.deselectCell(noomCellActivCharPl);
       this.gamePlay.selectCell(CharPl.position);
     }
     // TODO: react to click
@@ -126,7 +155,7 @@ export default class GameController {
       // номер ячейки активного персонажа найденного по названию класса
     if (numActivSell !== -1) { // если есть активный игрок .....
       // let dist;
-      const nameActivChar = GameState.charPl.find((char) => char.position === numActivSell).character.type;
+      const nameActivChar = GameState.charPl.find((char) => this.gamePlay.cells[char.position].classList.contains('selected-yellow')).character.type;
 
       if (calcAreaAction(numActivSell, index, nameActivChar, 'move') !== -1
        && !this.gamePlay.cells[index].firstChild) { // если номер ячейки находится в диапазоне разрешонных для хода и это не персонаж то ...
