@@ -33,7 +33,7 @@ export function calcHealthLevel(health) {
   return 'high';
 }
 
-export function calcСruisingRange(numCellActiv, numCellNext, nameActivChar, action) { // move, attack
+export function calcAreaAction(numCellActiv, numCellNext, nameActivChar, action) { // move, attack
   const playerTurnParameters = {
     swordsman: 4,
     bowman: 2,

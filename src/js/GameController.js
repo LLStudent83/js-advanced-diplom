@@ -4,7 +4,7 @@ import Team from './Team';
 import GameState from './GameState';
 import GamePlay from './GamePlay';
 import cursors from './cursors';
-import { calcСruisingRange } from './utils';
+import { calcAreaAction } from './utils';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -65,28 +65,47 @@ export default class GameController {
   }
 
   onCellClick(index) {
-    const activCharPl = GameState.charPl.find((element) => element.position === index);
+    const noomCellActivChar = Array.from(this.gamePlay.cells)
+      .findIndex((element) => element.classList.contains('selected') && element.firstChild);
+    // номер клетки активного персонажа
+    const CharPl = GameState.charPl.find((element) => element.position === index);
+    // персонаж игрока если есть
+    const CharPC = GameState.charPC.find((element) => element.position === index);
+    // персонаж ПК если есть
+    if (!(CharPl || CharPC)) { // если попал в клетку где нет персонажей
+      if (this.gamePlay.cells[index].classList.contains('selected-green')) {
+        // формируем массив позиционированны персонажей игрока с новой позицией
+        const newArrCharePl = GameState.charPl.map((char) => {
+          if (this.gamePlay.cells[char.position].classList.contains('selected')) {
+            char.position = index;
+            return char;
+          } return char;
+        });
+        GameState.charPl = newArrCharePl;
+        this.arrSummCharPosition = [...GameState.charPC, ...GameState.charPl];
+        // массив персонажей находящихся на поле
+        this.gamePlay.redrawPositions(this.arrSummCharPosition);
 
-    // активный персонаж игрока
-    const activCharPC = GameState.charPC.find((element) => element.position === index);
-    // активный персонаж ПК
-    if (!(activCharPl || activCharPC)) {
+        this.gamePlay.deselectCell(noomCellActivChar);
+        this.gamePlay.selectCell(index);
+        // this.gamePlay.deselectCell(noomCellActivChar);
+        // убрать выделение склошной круг, убрать штрих-круг, установить новый круг
+      }
+      // сюда прописат условие клика на клетке в диапазоне дальности хода
       return;
     }
-    if (activCharPC) {
+    if (CharPC) {
       GamePlay.showError('Выберите своего персонажа');
       return;
     }
-    const noomCellActivChar = Array.from(this.gamePlay.cells)
-      .findIndex((element) => element.classList.contains('selected'));
-    // номер клетки активного персонажа
-    if (noomCellActivChar === -1) {
-      this.gamePlay.selectCell(activCharPl.position);
+    // если кликнул по клетке и там есть персонаж игрока то .....
+    if (noomCellActivChar === -1) { // если активного персонажа нет то ....
+      this.gamePlay.selectCell(CharPl.position);
       return;
     }
-    if (!(noomCellActivChar === activCharPl.position)) {
+    if (!(noomCellActivChar === CharPl.position)) { // если клинтул по не активному персонажу игрока ...
       this.gamePlay.deselectCell(noomCellActivChar);
-      this.gamePlay.selectCell(activCharPl.position);
+      this.gamePlay.selectCell(CharPl.position);
     }
     // TODO: react to click
   }
@@ -104,12 +123,12 @@ export default class GameController {
     // блок выделения ячейки перед перемещением персонажа
     const numActivSell = Array.from(this.gamePlay.cells)
       .findIndex((element) => element.classList.contains('selected') && element.firstChild);
-      // номер ячейки активного персонажа найденное по названию класса
+      // номер ячейки активного персонажа найденного по названию класса
     if (numActivSell !== -1) { // если есть активный игрок .....
       // let dist;
       const nameActivChar = GameState.charPl.find((char) => char.position === numActivSell).character.type;
 
-      if (calcСruisingRange(numActivSell, index, nameActivChar, 'move') !== -1
+      if (calcAreaAction(numActivSell, index, nameActivChar, 'move') !== -1
        && !this.gamePlay.cells[index].firstChild) { // если номер ячейки находится в диапазоне разрешонных для хода и это не персонаж то ...
         this.gamePlay.selectCell(index, 'green');
         this.gamePlay.setCursor(cursors.pointer);
@@ -117,7 +136,7 @@ export default class GameController {
         this.gamePlay.setCursor(cursors.notallowed);
       }
       // блок выделения ячейки с противником
-      if ((calcСruisingRange(numActivSell, index, nameActivChar, 'attack') !== -1)
+      if ((calcAreaAction(numActivSell, index, nameActivChar, 'attack') !== -1)
       && GameState.charPC.find((char) => char.position === index)) {
         // если номер ячейки находится в диапазоне разрешонных для атаки и это персонаж ПК то .
         this.gamePlay.selectCell(index, 'red');
