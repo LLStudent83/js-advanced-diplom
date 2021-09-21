@@ -4,7 +4,7 @@ import Team from './Team';
 import GameState from './GameState';
 import GamePlay from './GamePlay';
 import cursors from './cursors';
-import { calcAreaAction } from './utils';
+import { calcAreaAction, getMoveSellForPC } from './utils';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -118,7 +118,7 @@ export default class GameController {
             char.character.health -= damageSize;
             return char;
           } return char;
-        }).filter(char => char.character.health > 0);
+        }).filter((char) => char.character.health > 0);
 
         GameState.charPC = newArrCharePC;
         GameState.step = 'PC';
@@ -143,12 +143,12 @@ export default class GameController {
 
   // eslint-disable-next-line class-methods-use-this
   strokePC() { // логика ответного хода PC
-    // рандомно выбираем игрока.
+    // рандомно выбираем персонажа PC.
     const activCharPC = GameState.charPC[Math.floor(Math.random() * GameState.charPC.length)];
     // берем персонажи игрока и проверяем номера позиций находятся в зоне удара или нет
     const attackCharPl = GameState.charPl.find((char) => calcAreaAction(activCharPC.position, char.position, activCharPC.character.type, 'attack'));
-
-    if (attackCharPl) {
+    // _____________________ ниже логика атаки PC __________________________
+    if (attackCharPl) { // если в зоне удара есть игрок то .....
       console.log(`сейчас ударит ${activCharPC} по ${attackCharPl}`);
 
       const damageSize = Math.max(activCharPC.character.attack - attackCharPl.character.defence, activCharPC.character.attack * 0.1);
@@ -161,13 +161,28 @@ export default class GameController {
             char.character.health -= damageSize;
             return char;
           } return char;
-        }).filter(char => char.character.health > 0);
+        }).filter((char) => char.character.health > 0);
         GameState.charPl = newArrCharePL;
-        GameState.step = 'PL';
+        GameState.step = 'Pl';
         this.arrSummCharPosition = [...GameState.charPC, ...GameState.charPl];
         // выше массив персонажей находящихся на поле
         this.gamePlay.redrawPositions(this.arrSummCharPosition);
       });
+      // _____________________ ниже логика хода PC __________________________
+    } else {
+      const moveSell = getMoveSellForPC(activCharPC, this.gamePlay.cells);
+      const newArrCharePC = GameState.charPC.map((char) => {
+        if (char.position === activCharPC.position) {
+          char.position = moveSell;
+          return char;
+        } return char;
+      });
+      GameState.charPC = newArrCharePC;
+      GameState.step = 'Pl';
+      this.arrSummCharPosition = [...GameState.charPC, ...GameState.charPl];
+      // выше массив персонажей находящихся на поле
+      this.gamePlay.redrawPositions(this.arrSummCharPosition);
+
     }
   }
 

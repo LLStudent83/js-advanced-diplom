@@ -82,3 +82,15 @@ export function calcAreaAction(numCellActiv, numCellNext, nameActivChar, action)
     return true;
   }
 }
+
+export function getMoveSellForPC(activCharPC, cells) {
+  let moveSell;
+  let rendomNumSell;
+  while (!moveSell) {
+    rendomNumSell = Math.floor(Math.random() * 63);
+    moveSell = calcAreaAction(activCharPC.position, rendomNumSell, activCharPC.character.type, 'move');
+    if (moveSell && !cells[moveSell].firstChild) {
+      return moveSell;
+    }
+  }
+}
