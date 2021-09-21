@@ -67,13 +67,13 @@ export default class GameController {
   onCellClick(index) {
     const noomCellActivCharPl = Array.from(this.gamePlay.cells)
       .findIndex((element) => element.classList.contains('selected-yellow') && element.firstChild);
-    // выше номер клетки активного персонажа игрока
-    const CharPlqqqqqqq = GameState.charPl.find((element) => element.position === noomCellActivCharPl);
+      // выше номер клетки активного персонажа игрока
     const CharPl = GameState.charPl.find((element) => element.position === index);
     // выше персонаж игрока если есть в клетке куда кликнул
     const CharPC = GameState.charPC.find((element) => element.position === index);
     // выше персонаж ПК если есть в клетке куда кликнул
-    // ниже логика перемещения
+
+    // ____________________ниже логика перемещения_______________________________
     if (!(CharPl || CharPC)) { // если попал в клетку где нет персонажей
       if (this.gamePlay.cells[index].classList.contains('selected-green')) {
         //  ниже формируем массив позиционированны персонажей игрока с новой позицией
@@ -91,6 +91,7 @@ export default class GameController {
 
         this.gamePlay.deselectCell(noomCellActivCharPl);
         this.gamePlay.selectCell(index);
+        this.strokePC();
       }
       return;
     }
@@ -104,7 +105,7 @@ export default class GameController {
       GamePlay.showError('Ваш персонаж не дотянулся до противника. Подберитесь по ближе :-)');
       return;
     }
-    // ниже логика проведения атаки
+    // _______________________ниже логика проведения атаки____________________
     if (CharPC && this.gamePlay.cells[index].classList.contains('selected-red')) {
       const activCharPl = GameState.charPl.find((char) => char.position === noomCellActivCharPl);
       const damageSize = Math.max(activCharPl.character.attack - CharPC.character.defence, activCharPl.character.attack * 0.1);
@@ -117,12 +118,14 @@ export default class GameController {
             char.character.health -= damageSize;
             return char;
           } return char;
-        });
+        }).filter(char => char.character.health > 0);
+
         GameState.charPC = newArrCharePC;
         GameState.step = 'PC';
         this.arrSummCharPosition = [...GameState.charPC, ...GameState.charPl];
         // выше массив персонажей находящихся на поле
         this.gamePlay.redrawPositions(this.arrSummCharPosition);
+        this.strokePC();
       });
 
       return;
@@ -136,7 +139,36 @@ export default class GameController {
       this.gamePlay.deselectCell(noomCellActivCharPl);
       this.gamePlay.selectCell(CharPl.position);
     }
-    // TODO: react to click
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  strokePC() { // логика ответного хода PC
+    // рандомно выбираем игрока.
+    const activCharPC = GameState.charPC[Math.floor(Math.random() * GameState.charPC.length)];
+    // берем персонажи игрока и проверяем номера позиций находятся в зоне удара или нет
+    const attackCharPl = GameState.charPl.find((char) => calcAreaAction(activCharPC.position, char.position, activCharPC.character.type, 'attack'));
+
+    if (attackCharPl) {
+      console.log(`сейчас ударит ${activCharPC} по ${attackCharPl}`);
+
+      const damageSize = Math.max(activCharPC.character.attack - attackCharPl.character.defence, activCharPC.character.attack * 0.1);
+      console.log(damageSize);
+      const promise = this.gamePlay.showDamage(attackCharPl.position, damageSize);
+      promise.then(() => {
+      //  ниже формируем массив позиционированныx персонажей игрока с новым уровнем здоровья
+        const newArrCharePL = GameState.charPl.map((char) => {
+          if (char.position === attackCharPl.position) {
+            char.character.health -= damageSize;
+            return char;
+          } return char;
+        }).filter(char => char.character.health > 0);
+        GameState.charPl = newArrCharePL;
+        GameState.step = 'PL';
+        this.arrSummCharPosition = [...GameState.charPC, ...GameState.charPl];
+        // выше массив персонажей находящихся на поле
+        this.gamePlay.redrawPositions(this.arrSummCharPosition);
+      });
+    }
   }
 
   onCellEnter(index) {
@@ -157,7 +189,7 @@ export default class GameController {
       // let dist;
       const nameActivChar = GameState.charPl.find((char) => this.gamePlay.cells[char.position].classList.contains('selected-yellow')).character.type;
 
-      if (calcAreaAction(numActivSell, index, nameActivChar, 'move') !== -1
+      if (calcAreaAction(numActivSell, index, nameActivChar, 'move')
        && !this.gamePlay.cells[index].firstChild) { // если номер ячейки находится в диапазоне разрешонных для хода и это не персонаж то ...
         this.gamePlay.selectCell(index, 'green');
         this.gamePlay.setCursor(cursors.pointer);
@@ -165,7 +197,7 @@ export default class GameController {
         this.gamePlay.setCursor(cursors.notallowed);
       }
       // блок выделения ячейки с противником
-      if ((calcAreaAction(numActivSell, index, nameActivChar, 'attack') !== -1)
+      if ((calcAreaAction(numActivSell, index, nameActivChar, 'attack'))
       && GameState.charPC.find((char) => char.position === index)) {
         // если номер ячейки находится в диапазоне разрешонных для атаки и это персонаж ПК то .
         this.gamePlay.selectCell(index, 'red');

@@ -67,13 +67,15 @@ export function calcAreaAction(numCellActiv, numCellNext, nameActivChar, action)
   }
 
   if (dist === 1) {
+    // создаем массив номеров ячеек диапазона атаки или хода
     const rangeCill = oneСellАield.map((item) => item + numCellActiv);
-    const x = rangeCill.findIndex((item) => item === numCellNext);
+    // определяем входит или нет клетка предпологаемого удара или хода в диапазон
+    const x = rangeCill.find((item) => item === numCellNext);
     return x;
   }
   if (dist === 2) {
     const rangeCill = twoСellАield.map((item) => item + numCellActiv);
-    const x = rangeCill.findIndex((item) => item === numCellNext);
+    const x = rangeCill.find((item) => item === numCellNext);
     return x;
   }
   if (dist === 4) {
