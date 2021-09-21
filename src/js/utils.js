@@ -83,7 +83,7 @@ export function calcAreaAction(numCellActiv, numCellNext, nameActivChar, action)
   }
 }
 
-export function getMoveSellForPC(activCharPC, cells) {
+export function getMoveSellForPC(activCharPC, cells) { // возвращает номер ячейки для хода персонажа PC
   let moveSell;
   let rendomNumSell;
   while (!moveSell) {
