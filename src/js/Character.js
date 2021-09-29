@@ -22,5 +22,6 @@ export default class Character {
     } else {
       this.health += 80;
     }
+    return this;
   }
 }

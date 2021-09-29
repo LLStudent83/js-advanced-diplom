@@ -1,10 +1,12 @@
+// eslint-disable-next-line max-classes-per-file
 import themes from './themes';
 import { generateTeam } from './generators';
 import Team from './Team';
 import GameState from './GameState';
 import GamePlay from './GamePlay';
 import cursors from './cursors';
-import { calcAreaAction, getMoveSellForPC } from './utils';
+import { calcAreaAction, getMoveSellForPC, getNewLevel } from './utils';
+import Character from './Character';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -15,7 +17,31 @@ export default class GameController {
   }
 
   init() {
-    if (!GameState.state) {
+    GameState.from(this.stateService.load()); // сформировали GameState из localStorage
+    if (GameState.state === 'activ') {
+      const { level } = GameState;
+      let theme;
+      if (level === 1) {
+        theme = themes.prairie;
+      } if (level === 2) {
+        theme = themes.desert;
+      } if (level === 3) {
+        theme = themes.arctic;
+      } if (level === 4) {
+        theme = themes.mountain;
+      }
+
+      this.gamePlay.drawUi(theme);
+
+      this.arrSummCharPosition = [...GameState.charPC, ...GameState.charPl];
+      // массив персонажей находящихся на поле
+      this.gamePlay.redrawPositions(this.arrSummCharPosition);
+      if (GameState.step === 'PC') {
+        this.strokePC();
+      }
+    }
+
+    if (!GameState.state || GameState.state === 'new') { // условия начала новой игры
       this.gamePlay.drawUi(themes.prairie);
       const arrObjCharRendomPlayer = generateTeam(new Team().arrObjChar, 1, 2, this.arrPositionsPlayer);
       const arrObjCharRendomPC = generateTeam(new Team().arrObjChar, 1, 2, this.arrPositionsPC);
@@ -32,7 +58,40 @@ export default class GameController {
           maxLevel: 1,
         },
       );
-    } else {
+    }
+    
+
+    this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
+    this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
+    this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
+
+    this.gamePlay.addNewGameListener(() => {
+      GameState.from({ state: null });
+      this.gamePlay.cellClickListeners = [];
+      this.gamePlay.cellEnterListeners = [];
+      this.gamePlay.cellLeaveListeners = [];
+      this.gamePlay.newGameListeners = []; //
+      this.gamePlay.saveGameListeners = [];
+      this.gamePlay.loadGameListeners = [];
+      this.gamePlay.bindToDOM(document.querySelector('#game-container'));
+      this.init();
+    });
+    this.gamePlay.addSaveGameListener(() => {
+      GameState.from(
+        {
+          level: GameState.level,
+          charPl: GameState.charPl,
+          charPC: GameState.charPC,
+          step: GameState.step,
+          state: GameState.state,
+          scores: GameState.scores,
+          maxLevel: GameState.maxLevel,
+        },
+      );
+      // eslint-disable-next-line no-alert
+      alert('игра сохранена');
+    });
+    this.gamePlay.addLoadGameListener(() => {
       const { level } = GameState;
       let theme;
       if (level === 1) {
@@ -41,7 +100,7 @@ export default class GameController {
         theme = themes.desert;
       } if (level === 3) {
         theme = themes.arctic;
-      } if (level === 3) {
+      } if (level === 4) {
         theme = themes.mountain;
       }
 
@@ -50,16 +109,10 @@ export default class GameController {
       this.arrSummCharPosition = [...GameState.charPC, ...GameState.charPl];
       // массив персонажей находящихся на поле
       this.gamePlay.redrawPositions(this.arrSummCharPosition);
-    }
-
-    this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
-    this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
-    this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
-
-    this.gamePlay.addNewGameListener(() => {
-      GameState.from({ state: null });
-      this.init();
-    });
+      if (GameState.step === 'PC') {
+        this.strokePC();
+      }
+    })
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
   }
@@ -72,6 +125,8 @@ export default class GameController {
     // выше персонаж игрока если есть в клетке куда кликнул
     const CharPC = GameState.charPC.find((element) => element.position === index);
     // выше персонаж ПК если есть в клетке куда кликнул
+    // const newArrPl = GameState.charPl.map((char) => char.character.levelUp());
+    // console.log(newArrPl);
 
     // ____________________ниже логика перемещения_______________________________
     if (!(CharPl || CharPC)) { // если попал в клетку где нет персонажей
@@ -83,8 +138,17 @@ export default class GameController {
             return char;
           } return char;
         });
-        GameState.charPl = newArrCharePl;
-        GameState.step = 'PC';
+        GameState.from(
+          {
+            level: GameState.level,
+            charPl: newArrCharePl,
+            charPC: GameState.charPC,
+            step: 'PC',
+            state: 'activ',
+            scores: 0,
+            maxLevel: 1,
+          },
+        );
         this.arrSummCharPosition = [...GameState.charPC, ...GameState.charPl];
         // выше массив персонажей находящихся на поле
         this.gamePlay.redrawPositions(this.arrSummCharPosition);
@@ -109,23 +173,46 @@ export default class GameController {
     if (CharPC && this.gamePlay.cells[index].classList.contains('selected-red')) {
       const activCharPl = GameState.charPl.find((char) => char.position === noomCellActivCharPl);
       const damageSize = Math.max(activCharPl.character.attack - CharPC.character.defence, activCharPl.character.attack * 0.1);
-      console.log(damageSize);
       const promise = this.gamePlay.showDamage(index, damageSize);
       promise.then(() => {
-        //  ниже формируем массив позиционированны персонажей игрока с новым уровнем здоровья
+        //  ниже формируем массив позиционированны персонажей PC с новым уровнем здоровья
         const newArrCharePC = GameState.charPC.map((char) => {
           if (this.gamePlay.cells[char.position].classList.contains('selected-red')) {
             char.character.health -= damageSize;
             return char;
           } return char;
         }).filter((char) => char.character.health > 0);
-
-        GameState.charPC = newArrCharePC;
-        GameState.step = 'PC';
-        this.arrSummCharPosition = [...GameState.charPC, ...GameState.charPl];
-        // выше массив персонажей находящихся на поле
-        this.gamePlay.redrawPositions(this.arrSummCharPosition);
-        this.strokePC();
+        // ______________________ Ниже логика перехода на новый уровень____________________________
+        if (newArrCharePC.length > 0) {
+          GameState.from(
+            {
+              level: GameState.level,
+              charPl: GameState.charPl,
+              charPC: newArrCharePC,
+              step: 'PC',
+              state: 'activ',
+              scores: 0,
+              maxLevel: 1,
+            },
+          );
+          this.arrSummCharPosition = [...GameState.charPC, ...GameState.charPl];
+          // выше массив персонажей находящихся на поле
+          this.gamePlay.redrawPositions(this.arrSummCharPosition);
+          this.strokePC();
+        } else { // если игрок выиграл уровень
+          GameState.from(
+            {
+              level: GameState.level += 1,
+              charPl: GameState.charPl,
+              charPC: newArrCharePC, // может нужно передать null
+              step: 'PC',
+              state: 'activ',
+              scores: 0,
+              maxLevel: GameState.maxLevel += 1,
+            },
+          );
+          getNewLevel(this.stateService.load()); // возвращает массив с новыми персонажами
+        }
       });
 
       return;
@@ -149,21 +236,41 @@ export default class GameController {
     const attackCharPl = GameState.charPl.find((char) => calcAreaAction(activCharPC.position, char.position, activCharPC.character.type, 'attack'));
     // _____________________ ниже логика атаки PC __________________________
     if (attackCharPl) { // если в зоне удара есть игрок то .....
-      console.log(`сейчас ударит ${activCharPC} по ${attackCharPl}`);
-
       const damageSize = Math.max(activCharPC.character.attack - attackCharPl.character.defence, activCharPC.character.attack * 0.1);
-      console.log(damageSize);
       const promise = this.gamePlay.showDamage(attackCharPl.position, damageSize);
       promise.then(() => {
       //  ниже формируем массив позиционированныx персонажей игрока с новым уровнем здоровья
         const newArrCharePL = GameState.charPl.map((char) => {
           if (char.position === attackCharPl.position) {
+            // eslint-disable-next-line no-param-reassign
             char.character.health -= damageSize;
             return char;
           } return char;
         }).filter((char) => char.character.health > 0);
-        GameState.charPl = newArrCharePL;
-        GameState.step = 'Pl';
+        if (newArrCharePL.length === 0) {
+          for (let i = 0; i < this.gamePlay.cells.length; i += 1) {
+            const elem = this.gamePlay.cells[i];
+            elem.removeEventListener('mouseenter', (event) => this.onCellEnter(event));
+            // cellEl.addEventListener('mouseenter', (event) => this.onCellEnter(event));
+
+            elem.removeEventListener('mouseleave', (event) => this.onCellLeave(event));
+            elem.removeEventListener('click', (event) => this.onCellClick(event));
+          }
+          // eslint-disable-next-line no-alert
+          alert('Искусственный разум Вас победил. Начните игруз заново');
+        }
+        GameState.from(
+          {
+            level: GameState.level,
+            charPl: newArrCharePL,
+            charPC: GameState.charPC,
+            step: 'user',
+            state: 'activ',
+            scores: 0,
+            maxLevel: 1,
+          },
+        );
+
         this.arrSummCharPosition = [...GameState.charPC, ...GameState.charPl];
         // выше массив персонажей находящихся на поле
         this.gamePlay.redrawPositions(this.arrSummCharPosition);
@@ -177,12 +284,20 @@ export default class GameController {
           return char;
         } return char;
       });
-      GameState.charPC = newArrCharePC;
-      GameState.step = 'Pl';
+      GameState.from(
+        {
+          level: GameState.level,
+          charPl: GameState.charPl,
+          charPC: newArrCharePC,
+          step: 'user',
+          state: 'activ',
+          scores: 0,
+          maxLevel: 1,
+        },
+      );
       this.arrSummCharPosition = [...GameState.charPC, ...GameState.charPl];
       // выше массив персонажей находящихся на поле
       this.gamePlay.redrawPositions(this.arrSummCharPosition);
-
     }
   }
 
@@ -191,14 +306,13 @@ export default class GameController {
     const activSellChar = this.arrSummCharPosition.find((element) => element.position === index);
     // активный игрок
     if (activSellChar) {
-      const message = `🎖${activSellChar.character.level} ⚔${activSellChar.character.attack} 
-      🛡${activSellChar.character.defence} ❤${activSellChar.character.health}`;
+      const message = `🎖${activSellChar.character.level} ⚔${activSellChar.character.attack} 🛡${activSellChar.character.defence} ❤${activSellChar.character.health}`;
       this.gamePlay.showCellTooltip(message, index);
     }
 
     // блок выделения ячейки перед перемещением персонажа
     const numActivSell = Array.from(this.gamePlay.cells)
-      .findIndex((element) => element.classList.contains('selected') && element.firstChild);
+      .findIndex((element) => element.classList.contains('selected-yellow') && element.firstChild);
       // номер ячейки активного персонажа найденного по названию класса
     if (numActivSell !== -1) { // если есть активный игрок .....
       // let dist;
@@ -208,7 +322,8 @@ export default class GameController {
        && !this.gamePlay.cells[index].firstChild) { // если номер ячейки находится в диапазоне разрешонных для хода и это не персонаж то ...
         this.gamePlay.selectCell(index, 'green');
         this.gamePlay.setCursor(cursors.pointer);
-      } else {
+      }
+      if (!calcAreaAction(numActivSell, index, nameActivChar, 'move') || (!calcAreaAction(numActivSell, index, nameActivChar, 'attack') && this.gamePlay.cells[index]).firstChild) {
         this.gamePlay.setCursor(cursors.notallowed);
       }
       // блок выделения ячейки с противником
@@ -245,3 +360,11 @@ export default class GameController {
     }
   }
 }
+
+// - Игра заканчивается тогда, когда все персонажи игрока погибают,
+//  либо достигнут выигран максимальный уровень (см.ниже Уровни);
+//  - Уровень завершается выигрышем игрока тогда, когда все персонажи компьютера погибли.
+//  - Баллы, которые набирает игрок за уровень равны сумме жизней оставшихся в живых персонажей.
+//  - По окончании уровня убедитесь, что очки начисляются пользователю и происходит
+//   переход на новый уровень с генерацией команд, levelUpом и восстановлением
+//   жизни в соответствии с правилами, описанными в разделе "Механика"

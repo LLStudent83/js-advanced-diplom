@@ -11,6 +11,20 @@ export default class Team {
           this.attack = 40;
           this.defence = 10;
         }
+
+        // levelUp() {
+        //   this.level += 1;
+        //   const attackAfter = Math.max(this.attack, (this.attack * (1.8 - this.health)) / 100);
+        //   this.attack = attackAfter;
+        //   const defenseAfter = Math.max(this.defence, (this.defence * (1.8 - (this.health / 100))));
+        //   this.defence = defenseAfter;
+
+        //   if (this.health >= 20) {
+        //     this.health = 100;
+        //   } else {
+        //     this.health += 80;
+        //   }
+        // }
       },
       class Bowman extends Character {
         constructor(level, type = 'generic') {
