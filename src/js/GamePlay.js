@@ -2,6 +2,9 @@ import { calcHealthLevel, calcTileType } from './utils';
 
 export default class GamePlay {
   constructor() {
+    this.click = (event) => this.onCellClick(event);
+    this.mouseleave = (event) => this.onCellLeave(event);
+    this.mouseenter = (event) => this.onCellEnter(event);
     this.boardSize = 8;
     this.container = null;
     this.boardEl = null; // Элемент игрового поля
@@ -54,9 +57,9 @@ export default class GamePlay {
     for (let i = 1; i <= this.boardSize ** 2; i += 1) { // изменил i=0 на i=1 и заменил знак < на <=
       const cellEl = document.createElement('div');
       cellEl.classList.add('cell', 'map-tile', `map-tile-${calcTileType(i, this.boardSize)}`);
-      cellEl.addEventListener('mouseenter', (event) => this.onCellEnter(event));
-      cellEl.addEventListener('mouseleave', (event) => this.onCellLeave(event));
-      cellEl.addEventListener('click', (event) => this.onCellClick(event));
+      cellEl.addEventListener('mouseenter', this.mouseenter);
+      cellEl.addEventListener('mouseleave', this.mouseleave);
+      cellEl.addEventListener('click', this.click);
       this.boardEl.appendChild(cellEl); // добавляет узел в конец списка дочерних элементов
     }
 

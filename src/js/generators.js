@@ -39,3 +39,7 @@ export function generateTeam(allowedTypes, maxLevel, characterCount, arrPosition
   }
   return arrObjCharTeam;
 }
+
+export function generateTeamq() {
+  console.log('111111111111111111');
+}

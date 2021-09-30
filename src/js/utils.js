@@ -1,6 +1,7 @@
-import generateTeam from './generators';
+// import generateTeam from './generators';
 import Team from './Team';
 import GameState from './GameState';
+import generateTeamq from './generators';
 
 export function calcTileType(i, boardSize) { // отрисовка краев поля
   const n = boardSize;
@@ -105,17 +106,22 @@ export function getNewLevel(obj) { // возвращает массив новы
   if (obj.level === 2) {
     const newArrPl = GameState.charPl.map((char) => char.character.levelUp());
     // дополнительный персонаж игрока
-    const newArrPlAdd = generateTeam(new Team().arrObjChar, 1, 1, arrPositionsPlayer);
+    const teamObj = new Team();
+    const team = teamObj.arrObjChar;
+    generateTeamq();
+    const newArrPlAdd = generateTeamq(team);
+
     const summArrPl = [...newArrPl, ...newArrPlAdd];
-    const newArrPC = generateTeam(new Team().arrObjChar, 2, summArrPl.length, arrPositionsPC);
+    const newArrPC = generateTeamq(team, 2, summArrPl.length, arrPositionsPC);
     const arrChar = [...summArrPl, ...newArrPC];
     console.log('счас пеерейдем на новый уровень', arrChar);
 
     return arrChar;
   }
-  // 1. нужно сформировать новые команды
-  // 1.1. для этого применяем левелАп к оставшейся команде игрока
-  // 1.2 добавляем нужное количество играков с заданным уровнем
-  // 1.3 формируем команду PC
-  // 1.4. возвращаем массив новых персонажей
 }
+
+// 1. нужно сформировать новые команды
+// 1.1. для этого применяем левелАп к оставшейся команде игрока
+// 1.2 добавляем нужное количество играков с заданным уровнем
+// 1.3 формируем команду PC
+// 1.4. возвращаем массив новых персонажей

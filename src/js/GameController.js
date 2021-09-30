@@ -59,7 +59,6 @@ export default class GameController {
         },
       );
     }
-    
 
     this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
     this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
@@ -112,7 +111,7 @@ export default class GameController {
       if (GameState.step === 'PC') {
         this.strokePC();
       }
-    })
+    });
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
   }
@@ -248,13 +247,12 @@ export default class GameController {
           } return char;
         }).filter((char) => char.character.health > 0);
         if (newArrCharePL.length === 0) {
+          // ниже удаляем обработчики события
           for (let i = 0; i < this.gamePlay.cells.length; i += 1) {
             const elem = this.gamePlay.cells[i];
-            elem.removeEventListener('mouseenter', (event) => this.onCellEnter(event));
-            // cellEl.addEventListener('mouseenter', (event) => this.onCellEnter(event));
-
-            elem.removeEventListener('mouseleave', (event) => this.onCellLeave(event));
-            elem.removeEventListener('click', (event) => this.onCellClick(event));
+            elem.removeEventListener('mouseenter', this.gamePlay.mouseenter);
+            elem.removeEventListener('mouseleave', this.gamePlay.mouseleave);
+            elem.removeEventListener('click', this.gamePlay.click);
           }
           // eslint-disable-next-line no-alert
           alert('Искусственный разум Вас победил. Начните игруз заново');
