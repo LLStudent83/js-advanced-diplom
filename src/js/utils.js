@@ -1,7 +1,9 @@
 // import generateTeam from './generators';
 import Team from './Team';
 import GameState from './GameState';
-import generateTeamq from './generators';
+import { generateTeam } from './generators';
+import PositionedCharacter from './PositionedCharacter';
+import themes from './themes';
 
 export function calcTileType(i, boardSize) { // отрисовка краев поля
   const n = boardSize;
@@ -103,21 +105,41 @@ export function getMoveSellForPC(activCharPC, cells) { // возвращает �
 export function getNewLevel(obj) { // возвращает массив новых команд персонажей при переходе на новый уровень
   const arrPositionsPlayer = [0, 1, 8, 9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49];
   const arrPositionsPC = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 62, 63];
-  if (obj.level === 2) {
-    const newArrPl = GameState.charPl.map((char) => char.character.levelUp());
-    // дополнительный персонаж игрока
-    const teamObj = new Team();
-    const team = teamObj.arrObjChar;
-    generateTeamq();
-    const newArrPlAdd = generateTeamq(team);
 
-    const summArrPl = [...newArrPl, ...newArrPlAdd];
-    const newArrPC = generateTeamq(team, 2, summArrPl.length, arrPositionsPC);
-    const arrChar = [...summArrPl, ...newArrPC];
-    console.log('счас пеерейдем на новый уровень', arrChar);
+  const { levelPC } = obj;
+  // eslint-disable-next-line no-use-before-define
+  let levelPl = levelPC === 4 ? levelPl = 2 : levelPl = levelPC - 1;
+  const newArrPl = GameState.charPl.map((char) => {
+    const { position } = char;
+    const charMod = char.character.levelUp();
+    return new PositionedCharacter(charMod, position);
+  });
 
-    return arrChar;
+  const team = new Team().arrObjChar;
+  //  ниже дополнительный персонаж игрока
+  const newArrPlAdd = generateTeam(team, levelPl, levelPl, arrPositionsPlayer); // уровень игрока и количество играков
+  const summArrPl = [...newArrPl, ...newArrPlAdd];
+  GameState.charPl = summArrPl;
+  const newArrPC = generateTeam(team, levelPC, summArrPl.length, arrPositionsPC);
+  GameState.charPC = newArrPC;
+  const arrChar = [...summArrPl, ...newArrPC];
+  console.log('счас пеерейдем на новый уровень', arrChar);
+
+  return arrChar;
+}
+
+export function getNameThemes(numLevel) {
+  let theme;
+  if (numLevel === 1) {
+    theme = themes.prairie;
+  } if (numLevel === 2) {
+    theme = themes.desert;
+  } if (numLevel === 3) {
+    theme = themes.arctic;
+  } if (numLevel === 4) {
+    theme = themes.mountain;
   }
+  return theme;
 }
 
 // 1. нужно сформировать новые команды
