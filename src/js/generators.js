@@ -15,13 +15,13 @@ export function* characterGenerator(allowedTypes, maxLevel) { // разрешо�
   yield new allowedTypes[numberChar](levelChar); // получаем одного героя из 6
 }
 
-function* generatorUniqueNumbers(characterCount, setObj) {
+function* generatorUniqueNumbers(characterCount, setObj, length) {
   let unicNum;
   while (setObj.size <= characterCount - 1) {
-    unicNum = Math.floor(Math.random() * (14));
+    unicNum = Math.floor(Math.random() * (length));
     if (!(setObj.has(unicNum))) {
       setObj.add(unicNum);
-      yield unicNum;
+      yield unicNum; // должен выдать номер
     }
   }
 }
@@ -31,7 +31,7 @@ export function generateTeam(allowedTypes, maxLevel, characterCount, arrPosition
   const setObj = new Set();
   for (let i = 1; i <= characterCount;) {
     const char = characterGenerator(allowedTypes, maxLevel);
-    const genNum = generatorUniqueNumbers(characterCount, setObj);
+    const genNum = generatorUniqueNumbers(characterCount, setObj, arrPositions.length - 1);
     const positionPlayer = arrPositions[genNum.next().value];
     const objPositionedCharacter = new PositionedCharacter(char.next().value, positionPlayer);
     arrObjCharTeam.push(objPositionedCharacter);

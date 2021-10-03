@@ -13,8 +13,8 @@ export default class GameController {
   constructor(gamePlay, stateService) {
     this.gamePlay = gamePlay;
     this.stateService = stateService;
-    this.arrPositionsPlayer = [0, 1, 8, 9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49];
-    this.arrPositionsPC = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 62, 63];
+    this.arrPositionsPlayer = [0, 1, 8, 9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49, 56, 57];
+    this.arrPositionsPC = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63];
   }
 
   init() {
@@ -150,8 +150,9 @@ export default class GameController {
       return;
     }
     // _______________________ниже логика проведения атаки____________________
-    if (CharPC && this.gamePlay.cells[index].classList.contains('selected-red')) {
-      const activCharPl = GameState.charPl.find((char) => char.position === noomCellActivCharPl);
+    const activCharPl = GameState.charPl.find((char) => char.position === noomCellActivCharPl);// проба
+    if (CharPC && this.gamePlay.cells[index].classList.contains('selected-red') && activCharPl) {
+      // const activCharPl = GameState.charPl.find((char) => char.position === noomCellActivCharPl);
       const damageSize = Math.max(activCharPl.character.attack - CharPC.character.defence, activCharPl.character.attack * 0.1);
       const promise = this.gamePlay.showDamage(index, damageSize);
       promise.then(() => {
@@ -186,7 +187,7 @@ export default class GameController {
             {
               level: GameState.level += 1,
               charPl: GameState.charPl,
-              charPC: newArrCharePC, // может нужно передать null
+              charPC: newArrCharePC,
               step: 'PC',
               state: 'activ',
               scores: scor,
@@ -201,6 +202,7 @@ export default class GameController {
               elem.removeEventListener('click', this.gamePlay.click);
             }
             // eslint-disable-next-line no-alert
+            GameState.from(null);
             alert(`вы выиграли. Ваш счет ${GameState.scores}`);
             return;
           }
@@ -271,6 +273,9 @@ export default class GameController {
       });
       // _____________________ ниже логика хода PC __________________________
     } else {
+      if (!activCharPC.position) {
+        console.log('беда');
+      }
       const moveSell = getMoveSellForPC(activCharPC, this.gamePlay.cells);
       const newArrCharePC = GameState.charPC.map((char) => {
         if (char.position === activCharPC.position) {
