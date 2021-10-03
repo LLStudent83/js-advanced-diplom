@@ -274,6 +274,7 @@ export default class GameController {
       const moveSell = getMoveSellForPC(activCharPC, this.gamePlay.cells);
       const newArrCharePC = GameState.charPC.map((char) => {
         if (char.position === activCharPC.position) {
+          // eslint-disable-next-line no-param-reassign
           char.position = moveSell;
           return char;
         } return char;
@@ -311,9 +312,8 @@ export default class GameController {
     if (numActivSell !== -1) { // если есть активный игрок .....
       // let dist;
       const nameActivChar = GameState.charPl.find((char) => this.gamePlay.cells[char.position].classList.contains('selected-yellow')).character.type;
-
-      if (calcAreaAction(numActivSell, index, nameActivChar, 'move')
-       && !this.gamePlay.cells[index].firstChild) { // если номер ячейки находится в диапазоне разрешонных для хода и это не персонаж то ...
+      const tf = calcAreaAction(numActivSell, index, nameActivChar, 'move');
+      if (tf !== undefined && !this.gamePlay.cells[index].firstChild) { // если номер ячейки находится в диапазоне разрешонных для хода и это не персонаж то ...
         this.gamePlay.selectCell(index, 'green');
         this.gamePlay.setCursor(cursors.pointer);
       }
