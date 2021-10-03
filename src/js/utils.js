@@ -40,6 +40,7 @@ export function calcHealthLevel(health) {
   return 'high';
 }
 
+// eslint-disable-next-line consistent-return
 export function calcAreaAction(numCellActiv, numCellNext, nameActivChar, action) { // move, attack
   const playerTurnParameters = {
     swordsman: 4,
@@ -104,9 +105,11 @@ export function getMoveSellForPC(activCharPC, cells) { // возвращает �
 
 export function getNewLevel(obj) { // возвращает массив новых команд персонажей при переходе на новый уровень
   const arrPositionsPlayer = [0, 1, 8, 9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49];
+  const arrPositionCharPl = obj.charPl.map((char) => char.position);
   const arrPositionsPC = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 62, 63];
-
-  const { levelPC } = obj;
+  const modArrPositionsPlayer = arrPositionsPlayer
+    .filter((num) => arrPositionCharPl.indexOf(num) === -1);
+  const levelPC = obj.level;
   // eslint-disable-next-line no-use-before-define
   let levelPl = levelPC === 4 ? levelPl = 2 : levelPl = levelPC - 1;
   const newArrPl = GameState.charPl.map((char) => {
@@ -117,14 +120,12 @@ export function getNewLevel(obj) { // возвращает массив новы
 
   const team = new Team().arrObjChar;
   //  ниже дополнительный персонаж игрока
-  const newArrPlAdd = generateTeam(team, levelPl, levelPl, arrPositionsPlayer); // уровень игрока и количество играков
+  const newArrPlAdd = generateTeam(team, levelPl, levelPl, modArrPositionsPlayer); // уровень игрока и количество играков
   const summArrPl = [...newArrPl, ...newArrPlAdd];
   GameState.charPl = summArrPl;
   const newArrPC = generateTeam(team, levelPC, summArrPl.length, arrPositionsPC);
   GameState.charPC = newArrPC;
   const arrChar = [...summArrPl, ...newArrPC];
-  console.log('счас пеерейдем на новый уровень', arrChar);
-
   return arrChar;
 }
 
@@ -141,9 +142,3 @@ export function getNameThemes(numLevel) {
   }
   return theme;
 }
-
-// 1. нужно сформировать новые команды
-// 1.1. для этого применяем левелАп к оставшейся команде игрока
-// 1.2 добавляем нужное количество играков с заданным уровнем
-// 1.3 формируем команду PC
-// 1.4. возвращаем массив новых персонажей

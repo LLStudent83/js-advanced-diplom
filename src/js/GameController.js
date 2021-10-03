@@ -5,8 +5,9 @@ import Team from './Team';
 import GameState from './GameState';
 import GamePlay from './GamePlay';
 import cursors from './cursors';
-import { calcAreaAction, getMoveSellForPC, getNewLevel } from './utils';
-import Character from './Character';
+import {
+  calcAreaAction, getMoveSellForPC, getNewLevel, getNameThemes,
+} from './utils';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -20,16 +21,7 @@ export default class GameController {
     GameState.from(this.stateService.load()); // сформировали GameState из localStorage
     if (GameState.state === 'activ') {
       const { level } = GameState;
-      let theme;
-      if (level === 1) {
-        theme = themes.prairie;
-      } if (level === 2) {
-        theme = themes.desert;
-      } if (level === 3) {
-        theme = themes.arctic;
-      } if (level === 4) {
-        theme = themes.mountain;
-      }
+      const theme = getNameThemes(level);
 
       this.gamePlay.drawUi(theme);
 
@@ -92,16 +84,7 @@ export default class GameController {
     });
     this.gamePlay.addLoadGameListener(() => {
       const { level } = GameState;
-      let theme;
-      if (level === 1) {
-        theme = themes.prairie;
-      } if (level === 2) {
-        theme = themes.desert;
-      } if (level === 3) {
-        theme = themes.arctic;
-      } if (level === 4) {
-        theme = themes.mountain;
-      }
+      const theme = getNameThemes(level);
 
       this.gamePlay.drawUi(theme);
 
@@ -124,8 +107,6 @@ export default class GameController {
     // выше персонаж игрока если есть в клетке куда кликнул
     const CharPC = GameState.charPC.find((element) => element.position === index);
     // выше персонаж ПК если есть в клетке куда кликнул
-    // const newArrPl = GameState.charPl.map((char) => char.character.levelUp());
-    // console.log(newArrPl);
 
     // ____________________ниже логика перемещения_______________________________
     if (!(CharPl || CharPC)) { // если попал в клетку где нет персонажей
@@ -144,7 +125,7 @@ export default class GameController {
             charPC: GameState.charPC,
             step: 'PC',
             state: 'activ',
-            scores: 0,
+            scores: GameState.scores,
             maxLevel: 1,
           },
         );
@@ -190,7 +171,7 @@ export default class GameController {
               charPC: newArrCharePC,
               step: 'PC',
               state: 'activ',
-              scores: 0,
+              scores: GameState.scores,
               maxLevel: 1,
             },
           );
@@ -199,6 +180,8 @@ export default class GameController {
           this.gamePlay.redrawPositions(this.arrSummCharPosition);
           this.strokePC();
         } else { // если игрок выиграл уровень
+          const scor = GameState.scores
+           + GameState.charPl.reduce((total, char) => total + char.character.health, 0);
           GameState.from(
             {
               level: GameState.level += 1,
@@ -206,11 +189,24 @@ export default class GameController {
               charPC: newArrCharePC, // может нужно передать null
               step: 'PC',
               state: 'activ',
-              scores: 0,
+              scores: scor,
               maxLevel: GameState.maxLevel += 1,
             },
           );
-          getNewLevel(this.stateService.load()); // возвращает массив с новыми персонажами
+          if (GameState.level === 5) {
+            for (let i = 0; i < this.gamePlay.cells.length; i += 1) {
+              const elem = this.gamePlay.cells[i];
+              elem.removeEventListener('mouseenter', this.gamePlay.mouseenter);
+              elem.removeEventListener('mouseleave', this.gamePlay.mouseleave);
+              elem.removeEventListener('click', this.gamePlay.click);
+            }
+            // eslint-disable-next-line no-alert
+            alert(`вы выиграли. Ваш счет ${GameState.scores}`);
+            return;
+          }
+          const { level } = GameState;
+          this.gamePlay.drawUi(getNameThemes(level));
+          this.gamePlay.redrawPositions(getNewLevel(this.stateService.load()));
         }
       });
 
@@ -264,7 +260,7 @@ export default class GameController {
             charPC: GameState.charPC,
             step: 'user',
             state: 'activ',
-            scores: 0,
+            scores: GameState.scores,
             maxLevel: 1,
           },
         );
@@ -289,7 +285,7 @@ export default class GameController {
           charPC: newArrCharePC,
           step: 'user',
           state: 'activ',
-          scores: 0,
+          scores: GameState.scores,
           maxLevel: 1,
         },
       );
@@ -358,11 +354,3 @@ export default class GameController {
     }
   }
 }
-
-// - Игра заканчивается тогда, когда все персонажи игрока погибают,
-//  либо достигнут выигран максимальный уровень (см.ниже Уровни);
-//  - Уровень завершается выигрышем игрока тогда, когда все персонажи компьютера погибли.
-//  - Баллы, которые набирает игрок за уровень равны сумме жизней оставшихся в живых персонажей.
-//  - По окончании уровня убедитесь, что очки начисляются пользователю и происходит
-//   переход на новый уровень с генерацией команд, levelUpом и восстановлением
-//   жизни в соответствии с правилами, описанными в разделе "Механика"
