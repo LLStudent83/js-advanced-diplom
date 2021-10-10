@@ -1,5 +1,4 @@
-import GameStateService from './GameStateService';
-
+/* eslint-disable consistent-return */
 export default class GameState {
   static from(object) {
     if (object === null) return;

@@ -1,3 +1,5 @@
+/* eslint-disable no-alert */
+/* eslint-disable no-param-reassign */
 // eslint-disable-next-line max-classes-per-file
 import themes from './themes';
 import { generateTeam } from './generators';
