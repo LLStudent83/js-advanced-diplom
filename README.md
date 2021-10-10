@@ -1,3 +1,5 @@
+https://llstudent83.github.io/js-advanced-diplom/
+
 # AJS. Retro Game
 
 ###### tags: `netology` `advanced js`
