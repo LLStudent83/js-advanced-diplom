@@ -37,8 +37,10 @@ export default class GameController {
 
     if (!GameState.state || GameState.state === 'new') { // условия начала новой игры
       this.gamePlay.drawUi(themes.prairie);
-      const arrObjCharRendomPlayer = generateTeam(new Team().arrObjChar, 1, 2, this.arrPositionsPlayer);
-      const arrObjCharRendomPC = generateTeam(new Team().arrObjChar, 1, 2, this.arrPositionsPC);
+      const temPl = new Team().arrObjChar.slice(0, 3);
+      const arrObjCharRendomPlayer = generateTeam(temPl, 1, 2, this.arrPositionsPlayer);
+      const temPC = new Team().arrObjChar.slice(-3);
+      const arrObjCharRendomPC = generateTeam(temPC, 1, 2, this.arrPositionsPC);
       this.arrSummCharPosition = [...arrObjCharRendomPlayer, ...arrObjCharRendomPC];
       this.gamePlay.redrawPositions(this.arrSummCharPosition);
       GameState.from(
@@ -196,7 +198,7 @@ export default class GameController {
               maxLevel: GameState.maxLevel += 1,
             },
           );
-          if (GameState.level === 5) {
+          if (GameState.level === 5) { // когда игра окончилась
             for (let i = 0; i < this.gamePlay.cells.length; i += 1) {
               const elem = this.gamePlay.cells[i];
               elem.removeEventListener('mouseenter', this.gamePlay.mouseenter);

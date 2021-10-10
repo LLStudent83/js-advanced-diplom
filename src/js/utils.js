@@ -106,7 +106,7 @@ export function getMoveSellForPC(activCharPC, cells) { // возвращает �
 
 export function getNewLevel(obj) { // возвращает массив новых команд персонажей при переходе на новый уровень
   const arrPositionsPlayer = [0, 1, 8, 9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49];
-  const arrPositionCharPl = obj.charPl.map((char) => char.position);
+  const arrPositionCharPl = obj.charPl.map((char) => char.position); // создаем массив позиций на которых находятся персонажи игрока
   const arrPositionsPC = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 62, 63];
   const modArrPositionsPlayer = arrPositionsPlayer
     .filter((num) => arrPositionCharPl.indexOf(num) === -1);
@@ -119,12 +119,13 @@ export function getNewLevel(obj) { // возвращает массив новы
     return new PositionedCharacter(charMod, position);
   });
 
-  const team = new Team().arrObjChar;
+  const temPl = new Team().arrObjChar.slice(0, 3);
   //  ниже дополнительный персонаж игрока
-  const newArrPlAdd = generateTeam(team, levelPl, levelPl, modArrPositionsPlayer); // уровень игрока и количество играков
+  const newArrPlAdd = generateTeam(temPl, levelPl, levelPl, modArrPositionsPlayer); // уровень игрока и количество играков
   const summArrPl = [...newArrPl, ...newArrPlAdd];
   GameState.charPl = summArrPl;
-  const newArrPC = generateTeam(team, levelPC, summArrPl.length, arrPositionsPC);
+  const temPC = new Team().arrObjChar.slice(-3);
+  const newArrPC = generateTeam(temPC, levelPC, summArrPl.length, arrPositionsPC);
   GameState.charPC = newArrPC;
   const arrChar = [...summArrPl, ...newArrPC];
   return arrChar;
