@@ -72,30 +72,32 @@ export default class GameController {
       this.init();
     });
     this.gamePlay.addSaveGameListener(() => {
-      GameState.from(
-        {
-          level: GameState.level,
-          charPl: GameState.charPl,
-          charPC: GameState.charPC,
-          step: GameState.step,
-          state: GameState.state,
-          scores: GameState.scores,
-          maxLevel: GameState.maxLevel,
-        },
-      );
+      const state = {
+        level: GameState.level,
+        charPl: GameState.charPl,
+        charPC: GameState.charPC,
+        step: GameState.step,
+        state: GameState.state,
+        scores: GameState.scores,
+        maxLevel: GameState.maxLevel,
+      };
+      this.stateService.saveGame(state);
       // eslint-disable-next-line no-alert
       alert('игра сохранена');
     });
+
     this.gamePlay.addLoadGameListener(() => {
-      const { level } = GameState;
+      const state = this.stateService.loadGame();
+      const { level } = state;
       const theme = getNameThemes(level);
 
       this.gamePlay.drawUi(theme);
 
-      this.arrSummCharPosition = [...GameState.charPC, ...GameState.charPl];
+      this.arrSummCharPosition = [...state.charPC, ...state.charPl];
       // массив персонажей находящихся на поле
       this.gamePlay.redrawPositions(this.arrSummCharPosition);
-      if (GameState.step === 'PC') {
+      GameState.from(state);
+      if (state.step === 'PC') {
         this.strokePC();
       }
     });
